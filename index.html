@@ -213,7 +213,7 @@
 
       <div class="notice">
         <span aria-hidden="true">ⓘ</span>
-        <div><strong>Prototype mode</strong>This form is a front-end demo only. After validation, it shows a confirmation. Use the WhatsApp browser Close (X) or Back control to return to the chat. Nothing is sent or saved.</div>
+        <div><strong>Prototype mode</strong>This form is a front-end demo only. After validation, it attempts to close the page. If the browser blocks automatic closing, use its Close (X) or Back control. Nothing is sent or saved.</div>
       </div>
 
       <div class="actions">
@@ -225,7 +225,7 @@
         <span id="resultText">Your form passed the front-end validation. No data was transmitted or saved.</span>
       </div>
     </form>
-    <p class="demo-footer">UDS · Lead Management Prototype<br />For demonstration and WhatsApp in-app browser return-flow testing only</p>
+    <p class="demo-footer">UDS · Lead Management Prototype<br />For demonstration and page-close behaviour testing only</p>
   </main>
 
   <script>
@@ -252,18 +252,22 @@
         return;
       }
 
-      // This page cannot close the WhatsApp in-app browser or identify
-      // the originating chat. Show a completion state so the employee
-      // can use WhatsApp's Close (X) / Back control to return to that chat.
-      resultText.textContent =
-        'Your lead details passed validation. No message was sent and no data was saved. Close this page using the WhatsApp browser X or Back control to return to your conversation.';
-      result.classList.add('show');
-      result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
+      // Attempt to close the current page after a user-initiated submit.
+      // Browsers generally allow window.close() only for script-opened tabs,
+      // so WhatsApp's in-app browser may ignore this request.
       const submitButton = form.querySelector('.submit');
       submitButton.textContent = 'Submitted';
       submitButton.disabled = true;
-      submitButton.style.opacity = '0.75';
+
+      window.close();
+
+      // If the browser blocks closing, show a clear manual close instruction.
+      window.setTimeout(() => {
+        resultText.textContent =
+          'Your form passed validation. This browser did not allow the page to close automatically. Use WhatsApp browser’s X or Back control to return to your chat.';
+        result.classList.add('show');
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 350);
     });
 
     form.addEventListener('reset', () => {
