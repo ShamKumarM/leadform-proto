@@ -213,7 +213,7 @@
 
       <div class="notice">
         <span aria-hidden="true">ⓘ</span>
-        <div><strong>Prototype mode</strong>This form is a front-end demo only. After validation, it prepares a WhatsApp message and attempts to open the WhatsApp app. Nothing is saved to a server or synced with NetSuite.</div>
+        <div><strong>Prototype mode</strong>This form is a front-end demo only. After validation, it shows a confirmation. Use the WhatsApp browser Close (X) or Back control to return to the chat. Nothing is sent or saved.</div>
       </div>
 
       <div class="actions">
@@ -221,11 +221,11 @@
         <button class="submit" type="submit">Submit Lead</button>
       </div>
       <div class="result" id="result" role="status" aria-live="polite">
-        <strong>Prototype submission successful</strong>
+        <strong>Form validated successfully</strong>
         <span id="resultText">Your form passed the front-end validation. No data was transmitted or saved.</span>
       </div>
     </form>
-    <p class="demo-footer">UDS · Lead Management Prototype<br />For demonstration and WhatsApp app handoff testing only</p>
+    <p class="demo-footer">UDS · Lead Management Prototype<br />For demonstration and WhatsApp in-app browser return-flow testing only</p>
   </main>
 
   <script>
@@ -252,45 +252,18 @@
         return;
       }
 
-      const value = (id) => document.getElementById(id).value.trim();
-      const fullName = [value('firstName'), value('lastName')].filter(Boolean).join(' ');
-      const cityValue = city.value === 'Others' ? value('cityOther') : city.value;
-
-      // Build a readable WhatsApp message from the validated form values.
-      const lines = [
-        'UDS - New Lead Submission',
-        '',
-        `Name: ${fullName}`,
-        `Company: ${value('company') || 'Not provided'}`,
-        `Designation: ${value('designation') || 'Not provided'}`,
-        `Phone 1: ${value('phone1')}`,
-        `Phone 2: ${value('phone2') || 'Not provided'}`,
-        `Email 1: ${value('email1') || 'Not provided'}`,
-        `Email 2: ${value('email2') || 'Not provided'}`,
-        `Address 1: ${value('address1') || 'Not provided'}`,
-        `Address 2: ${value('address2') || 'Not provided'}`,
-        `Pincode: ${value('pincode') || 'Not provided'}`,
-        `City: ${cityValue || 'Not provided'}`,
-        `State: ${value('state') || 'Not provided'}`,
-        '',
-        'Submitted from the UDS Lead Creation prototype.'
-      ];
-      const message = encodeURIComponent(lines.join('\\n'));
-
-      // Try handing off directly to the WhatsApp app first.
-      // If the app scheme is unsupported, fall back to WhatsApp's web link.
-      resultText.textContent = 'Your details passed validation. Opening WhatsApp…';
+      // This page cannot close the WhatsApp in-app browser or identify
+      // the originating chat. Show a completion state so the employee
+      // can use WhatsApp's Close (X) / Back control to return to that chat.
+      resultText.textContent =
+        'Your lead details passed validation. No message was sent and no data was saved. Close this page using the WhatsApp browser X or Back control to return to your conversation.';
       result.classList.add('show');
+      result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-      const appUrl = `whatsapp://send?text=${message}`;
-      const webUrl = `https://api.whatsapp.com/send?text=${message}`;
-      const fallbackTimer = window.setTimeout(() => {
-        window.location.href = webUrl;
-      }, 900);
-
-      // If the app handoff succeeds, the browser should move to WhatsApp.
-      // Browsers may still block custom URL schemes; the fallback handles that case.
-      window.location.href = appUrl;
+      const submitButton = form.querySelector('.submit');
+      submitButton.textContent = 'Submitted';
+      submitButton.disabled = true;
+      submitButton.style.opacity = '0.75';
     });
 
     form.addEventListener('reset', () => {
